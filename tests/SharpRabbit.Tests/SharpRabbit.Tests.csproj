@@ -22,7 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\src\Core\RabbitSharp\SharpRabbit.csproj" />
+    <ProjectReference Include="..\..\src\SharpRabbit\SharpRabbit.csproj" />
   </ItemGroup>
 
 </Project>
