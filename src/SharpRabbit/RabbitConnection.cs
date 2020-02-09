@@ -9,10 +9,11 @@ namespace SharpRabbit
 {
     internal class RabbitConnection : IRabbitConnection
     {
-        private readonly ILogger<RabbitConnection> _logger;
         private readonly IConnectionFactory _connectionFactory;
-        private bool _disposed;
         private readonly object _lock = new object();
+        private readonly ILogger<RabbitConnection> _logger;
+        private IConnection _connection;
+        private bool _disposed;
 
         public RabbitConnection(ILogger<RabbitConnection> logger, IConnectionFactory connectionFactory)
         {
@@ -21,8 +22,20 @@ namespace SharpRabbit
             _disposed = false;
         }
 
-        private IConnection _connection;
         public bool IsConnected => _connection?.IsOpen == true && !_disposed;
+
+        public IModel CreateModel()
+        {
+            lock (_lock)
+            {
+                TryConnect();
+
+                if (IsConnected)
+                    return _connection.CreateModel();
+                else
+                    throw new BrokerUnreachableException(new Exception("No connection was stablished, therefore no Model was created"));
+            }
+        }
 
         public bool TryConnect()
         {
@@ -53,46 +66,6 @@ namespace SharpRabbit
             return IsConnected;
         }
 
-        protected internal void OnConnectionBlocked(object sender, global::RabbitMQ.Client.Events.ConnectionBlockedEventArgs e)
-        {
-            _logger.LogError($"The connection was blocked for the following reason: {e.Reason}. Trying to reconnect");
-            
-            TryConnect();
-        }
-
-        protected internal void OnConnectionShutdown(object sender, ShutdownEventArgs e)
-        {
-            switch(e.Initiator)
-            {
-                case ShutdownInitiator.Application:
-                    {
-                        _logger.LogInformation("Application requested connection shutdown");
-
-                        break;
-                    }
-                case ShutdownInitiator.Peer:
-                    {
-                        _logger.LogError("The connection was shutdown by the Broker. Trying to reconnect");
-
-                        TryConnect();
-                        break;
-                    }
-            }
-        }
-
-        public IModel CreateModel()
-        {
-            lock (_lock)
-            {
-                TryConnect();
-
-                if (IsConnected)
-                    return _connection.CreateModel();
-                else
-                    throw new BrokerUnreachableException(new Exception("No connection was stablished, therefore no Model was created"));
-            }
-        }
-
         public void Dispose()
         {
             _logger.LogDebug("Initianting connection dispose");
@@ -118,6 +91,33 @@ namespace SharpRabbit
             finally
             {
                 GC.SuppressFinalize(this);
+            }
+        }
+
+        protected internal void OnConnectionBlocked(object sender, global::RabbitMQ.Client.Events.ConnectionBlockedEventArgs e)
+        {
+            _logger.LogError($"The connection was blocked for the following reason: {e.Reason}. Trying to reconnect");
+
+            TryConnect();
+        }
+
+        protected internal void OnConnectionShutdown(object sender, ShutdownEventArgs e)
+        {
+            switch (e.Initiator)
+            {
+                case ShutdownInitiator.Application:
+                    {
+                        _logger.LogInformation("Application requested connection shutdown");
+
+                        break;
+                    }
+                case ShutdownInitiator.Peer:
+                    {
+                        _logger.LogError("The connection was shutdown by the Broker. Trying to reconnect");
+
+                        TryConnect();
+                        break;
+                    }
             }
         }
     }
