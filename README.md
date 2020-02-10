@@ -14,7 +14,7 @@ SharpRabbit implements some simple *resiliency* patterns to ensure a proper and 
 
 ### No new frameworks, just the same API you love ❤
 
-A lot of libraries that encapsulate RabbitMQ.Client like [Rebus](https://github.com/rebus-org/Rebus.RabbitMq) or [EasyNetQ](https://github.com/EasyNetQ/EasyNetQ)) are great and have their proper usage, but for some cases they add too much on top of the client itself. The goal here to provide *simplicity* and *flexibility with safety* around the native RabbitMQ.Client lib.
+A lot of libraries that encapsulate RabbitMQ.Client like [Rebus](https://github.com/rebus-org/Rebus.RabbitMq) or [EasyNetQ](https://github.com/EasyNetQ/EasyNetQ) are great and have their proper usage, but for some cases they add too much on top of the client itself. The goal here to provide *simplicity* and *flexibility with safety* around the native RabbitMQ.Client lib.
 
 That said, SharpRabbit *does not aims to be an abstracted service bus*, but a *foundation* for it instead, so one can build its own the way it suits better.
 
