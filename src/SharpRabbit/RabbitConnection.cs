@@ -39,6 +39,9 @@ namespace SharpRabbit
 
         public bool TryConnect()
         {
+            if (_disposed)
+                throw new ObjectDisposedException(GetType().FullName);
+
             if (IsConnected)
                 return true;
 
